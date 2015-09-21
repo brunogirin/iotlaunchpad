@@ -1,0 +1,121 @@
+---
+
+- name: Play1
+  hosts: webservers
+  vars:
+    user: "{{ ansible_ssh_user }}"
+    project_name: "iotlaunchpad"
+    project_home: "{{ ansible_env.HOME }}/{{ project_name }}"
+    venv_home: "{{ project_home }}/virtualenv"
+    repo_url: "https://github.com/opentrv/iotlaunchpad"
+    source_dir: "{{ project_home }}/source"
+    database_dir: "{{ project_home }}/database"
+    socket_path: unix:/tmp/{{ project_name }}.socket
+    static_dir: "{{ project_home }}/static"
+  tasks:
+    - name: install apt packages
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+      sudo: True
+      with_items:
+        - git
+        - python-virtualenv
+        - nginx
+        - python-pip
+    - name: install python packages
+      pip: name={{ item }} virtualenv={{ venv_home }}
+      with_items:
+        - django
+        - gunicorn
+        - requests
+    - name: check out the repository on the host
+      git: repo={{ repo_url }} dest={{ source_dir }} accept_hostkey=yes
+      notify: restart gunicorn
+    - name: create database directory
+      file: path="{{ database_dir }}" state=directory
+    - name: sync the database, apply migrations, collect static content
+      django_manage:
+        command: "{{ item }}"
+        app_path: "{{ source_dir }}"
+        virtualenv: "{{ venv_home }}"
+      with_items:
+        - syncdb
+        - migrate
+        - collectstatic
+
+    - name: create gunicorn config
+      template:
+        src: templates/gunicorn.conf.j2
+        dest: /etc/init/gunicorn.conf
+      sudo: True
+      notify: restart gunicorn
+
+    - name: create nginx config file
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/pollupla.conf
+      notify: restart nginx
+      sudo: True
+
+    - name: enable the nginx config file
+      file:
+        src: /etc/nginx/sites-available/pollupla.conf
+        dest: /etc/nginx/sites-enabled/pollupla.conf
+        state: link
+      notify: restart nginx
+      sudo: True
+
+    - name: remove default from nginx enabled-sites
+      file: path=/etc/nginx/sites-enabled/default state=absent
+      notify: restart nginx
+      sudo: True
+
+  handlers:
+    - name: restart gunicorn
+      sudo: True
+      service: name=gunicorn state=restarted
+    - name: restart nginx
+      sudo: True
+      service: name=nginx state=restarted
+         
+     
+
+
+
+
+
+
+
+ 
+#    database_user: "{{ project_name }}"
+#    locale: "en_US.UTF8"
+#         - postgresql
+#         - python-psycopg
+#         - libpq-de
+#         - python-dev
+#         - psycopg2
+#         - twisted
+#         - pymongo
+#     - name: Create a db user
+#       postgresql_user:
+#         name: "{{ database_user }}"
+#         password: "{{ lookup('password', 'database_password.txt')}}"
+#       sudo: True
+#       sudo_user: postgres
+#     - name: Create the database
+#       postgresql_db:
+#         name: "{{ project_name }}"
+#         owner: "{{ database_user }}"
+#         encoding: UTF8
+#         lc_ctype: "{{ locale }}"
+#         lc_collate: "{{ locale }}"
+#         template: template0
+#       sudo: True
+#       sudo_user: postgres
+#    - name: test
+#      ping:
+#      notify: test handler
+#    - debug: var=ansible_ssh_user
+#    - debug: var=ansible_env.HOME
+#  handlers:
+#    - name: test handler
+#      ping:

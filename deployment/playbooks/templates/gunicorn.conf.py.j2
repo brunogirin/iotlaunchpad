@@ -1,0 +1,12 @@
+description "Gunicorn server for pollupla heyho"
+
+start on net-device-up
+stop on shutdown
+
+respawn
+
+setuid {{ user }}
+chdir {{ source_dir }}
+
+exec {{ venv_home }}/bin/gunicorn --bind {{ socket_path }} pollupla.wsgi:application
+
