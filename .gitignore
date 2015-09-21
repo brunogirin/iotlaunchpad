@@ -1,0 +1,8 @@
+# emacs files
+*~
+
+# python byte code
+*.pyc
+
+# vagrant vm
+deployment/.vagrant
