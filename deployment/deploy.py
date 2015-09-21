@@ -35,7 +35,7 @@ def main(args):
         user = args.user
         key = args.key
         inventory_filepath = os.path.join(ANSIBLE_DIR, 'inventories', PRODUCTION_INVENTORY)
-        output = subprocess.check_call(['ansible-playbook', PLAYBOOK, '-i', inventory, '--user', user, '--ask-su-pass', '--private-key', key])
+        output = subprocess.check_call(['ansible-playbook', PLAYBOOK, '-i', inventory_filepath, '--user', user, '--ask-su-pass', '--private-key', key])
     else:
         raise Exception('Unrecognised location:', location)
     

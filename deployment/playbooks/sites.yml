@@ -21,12 +21,16 @@
         - python-virtualenv
         - nginx
         - python-pip
+        - mongodb
+        - python-dev
     - name: install python packages
       pip: name={{ item }} virtualenv={{ venv_home }}
       with_items:
         - django
         - gunicorn
         - requests
+        - twisted
+        - pymongo
     - name: check out the repository on the host
       git: repo={{ repo_url }} dest={{ source_dir }} accept_hostkey=yes
       notify: restart gunicorn

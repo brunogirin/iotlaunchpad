@@ -1,4 +1,4 @@
-description "Gunicorn server for pollupla "
+description "Gunicorn server for iotlaunchpad"
 
 start on net-device-up
 stop on shutdown
@@ -8,5 +8,5 @@ respawn
 setuid {{ user }}
 chdir {{ source_dir }}
 
-exec {{ venv_home }}/bin/gunicorn --bind {{ socket_path }} pollupla.wsgi:application
+exec {{ venv_home }}/bin/gunicorn --bind {{ socket_path }} iotlaunchpad.wsgi:application
 
