@@ -1,0 +1,11 @@
+description "Twisted server for IOTLaunchpad."
+
+start on net-device-up
+stop on shutdown
+
+respawn
+
+setuid {{ user }}
+chdir {{ project_home }}
+
+exec {{ venv_home }}/bin/python {{ scripts_dir }}/start_server.py

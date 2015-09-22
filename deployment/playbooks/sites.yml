@@ -9,6 +9,7 @@
     venv_home: "{{ project_home }}/virtualenv"
     repo_url: "https://github.com/opentrv/iotlaunchpad"
     source_dir: "{{ project_home }}/source"
+    scripts_dir: "{{ source_dir }}/scripts"
     database_dir: "{{ project_home }}/database"
     socket_path: unix:/tmp/{{ project_name }}.socket
     static_dir: "{{ project_home }}/static"
@@ -73,6 +74,13 @@
       notify: restart nginx
       sudo: True
 
+    - name: create upstart file for udp server
+      template:
+        src: templates/udp_server.conf.j2
+        dest: /etc/init/udp_server.conf
+      sudo: True
+      notify: [restart udp server, start udp server]
+
   handlers:
     - name: restart gunicorn
       sudo: True
@@ -80,7 +88,12 @@
     - name: restart nginx
       sudo: True
       service: name=nginx state=restarted
-         
+    - name: restart udp server
+      sudo: True
+      service: name=udp_server state=restarted
+    - name: start udp server
+      sudo: True
+      service: name=udp_server state=started         
      
 
 
