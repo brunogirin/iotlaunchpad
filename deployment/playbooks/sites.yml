@@ -79,7 +79,7 @@
         src: templates/udp_server.conf.j2
         dest: /etc/init/udp_server.conf
       sudo: True
-      notify: [restart udp server, start udp server]
+      notify: restart udp server
 
   handlers:
     - name: restart gunicorn
@@ -91,12 +91,6 @@
     - name: restart udp server
       sudo: True
       service: name=udp_server state=restarted
-    - name: start udp server
-      sudo: True
-      service: name=udp_server state=started         
-     
-
-
 
 
 
